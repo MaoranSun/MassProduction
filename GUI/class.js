@@ -102,7 +102,7 @@ class L {
 }
 
 class Rectangle {
-  constructor(p1, p2, p3, p4, program, height, fill_color) {
+  constructor(p1, p2, p3, p4, program, height, fill_color, layer_count) {
     this.p1 = p1;
     this.p2 = p2;
     this.p3 = p3;
@@ -114,6 +114,7 @@ class Rectangle {
     this.delete = false;
     this.hover = false;
     this.select = false;
+    this.layer = layer_count
   }
 
   get corners() {
@@ -140,17 +141,29 @@ class Rectangle {
   }
 
   render() {
+      let colormap = {
+          '#eb565c': [235, 86, 92],
+          '#e7cd77': [231, 205, 119],
+          '#98eaa6': [152, 234, 166],
+          'black': [0,0,0]
+      }
+      let transparent = [0, 1, .6, .3];
+
       if (!this.delete) {
           push();
-          if (this.hover) {
+          if (this.hover && this.layer == 1) {
               strokeWeight(3);
               stroke('white');
-              fill(this.fill_color);
+              // fill(this.fill_color);
+              // fill('rgba(colormap[this.fill_color][0], colormap[this.fill_color][1], colormap[this.fill_color][2], transparent[this.layer])')
           }
           else {
               noStroke();
-              fill(this.fill_color);
+              // fill(this.fill_color);
           }
+          // fill('rgba(colormap[this.fill_color][0], colormap[this.fill_color][1], colormap[this.fill_color][2], transparent[this.layer])');
+          fill(`rgba(${colormap[this.fill_color][0]}, ${colormap[this.fill_color][1]}, ${colormap[this.fill_color][2]}, ${transparent[this.layer]})`);
+          // print(`rgba(${colormap[this.fill_color][0]}, ${colormap[this.fill_color][1]}, ${colormap[this.fill_color][2]}, ${transparent[this.layer]})`);
           quad(this.corners[0].x, this.corners[0].y, this.corners[1].x, this.corners[1].y, this.corners[2].x, this.corners[2].y, this.corners[3].x, this.corners[3].y);
           pop();
       }
@@ -311,5 +324,16 @@ class ButtonDelete extends Button {
     execute() {
         if (delete_mode) delete_mode = false;
         else delete_mode = true;
+    }
+}
+
+class ButtonLayer extends Button {
+    constructor(locationx, locationy, color, word) {
+        super(locationx, locationy, color, word);
+    }
+
+    execute() {
+        if (new_layer) new_layer = false;
+        else new_layer = true;
     }
 }

@@ -12,6 +12,8 @@ let shapes = [];
 let s_color = '#eb565c';
 // Check if a button is clicked
 let btned = false;
+// layer info
+let layer_count = 1;
 
 // not sure if useful, for test now
 let hover = false;
@@ -22,6 +24,7 @@ let curvemode = false;
 let mode_text;
 let curves = [];
 let delete_mode = false;
+let new_layer = false;
 
 // temp drawing lines
 let sketchingLines = [];
@@ -94,8 +97,12 @@ function setup() {
   // Mode Button
   mode_btn = new ButtonMode(690, btn_y, '#ffffff', 'Switch Mode');
 
+  // Layer
+  layer_btn = new ButtonLayer(960, btn_y-100, '#ffffff', 'Layer');
+
   // Add buttons to array
-  buttons = [retail_btn, residential_btn, office_btn, void_btn, save_btn, clear_btn, flr13_btn, flr46_btn, flr912_btn, mode_btn, delete_btn];
+  buttons = [retail_btn, residential_btn, office_btn, void_btn, save_btn, clear_btn, flr13_btn, flr46_btn, flr912_btn, delete_btn, layer_btn];
+  // buttons = [retail_btn, residential_btn, office_btn, void_btn, save_btn, clear_btn, flr13_btn, flr46_btn, flr912_btn, mode_btn, delete_btn, layer_btn];
 }
 
 // Draw lines
@@ -209,7 +216,7 @@ function draw() {
 // Record shapes and attributes
 function mouseReleased() {
     // record line in to rectangle
-    if (!btned && !selected && !curvemode && !delete_mode) {
+    if (!btned && !selected && !curvemode && !delete_mode && !new_layer) {
         count += 1;
         rec.push([lastLine.start.X, lastLine.start.Y, lastLine.end.X, lastLine.end.Y]);
 
@@ -217,12 +224,12 @@ function mouseReleased() {
         if (count % 4 == 0 && count != 0){
             let program = mapcolor(s_color);
             if (s_color == 'black') {
-                voids.push(pointsToRec(rec.slice(0,4), program, height, s_color));
+                voids.push(pointsToRec(rec.slice(0,4), program, height, s_color, layer_count));
             }
-            else shapes.push(pointsToRec(rec.slice(0,4), program, height, s_color));
+            else shapes.push(pointsToRec(rec.slice(0,4), program, height, s_color, layer_count));
             rec = [];
             sketchingLines = [];
-            // print(finalExport(shapes));
+            print(finalExport(shapes));
         }
     }
     else if (selected) {
@@ -240,12 +247,23 @@ function mouseReleased() {
     }
     else if (delete_mode) sketchingLines = [];
 
+    // Update shapes layer
+    else if (new_layer) {
+        for (let i = 0; i < shapes.length; i++) {
+            updateLayer(shapes[i]);
+        }
+        for (let i = 0; i < voids.length; i++) {
+            updateLayer(voids[i])
+        }
+    }
+
     // print(polygons);
 
     // reinitialize parameters
     btned = false;
     selected = false;
     currentlySketchingALine = false;
+    new_layer = false;
     recordCurve = [];
     curveLines = [];
 
@@ -298,7 +316,7 @@ function mousePressed() {
         // check if a shape is selected
         if (shapes.length > 0) {
             for (let i = 0; i < shapes.length; i++) {
-                if (inside(temp_p, shapes[i].cornerscoord)) {
+                if (inside(temp_p, shapes[i].cornerscoord) && shapes[i].layer == 1) {
                     if (!delete_mode) {
                         shapes[i].select = true;
                         selected = true;
