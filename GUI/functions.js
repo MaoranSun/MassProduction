@@ -133,7 +133,7 @@ function finalExport(shapes) {
 
     for (let i = 0; i < shapes.length; i++) {
         for (let j = 0; j < shapes[i].length; j++) {
-            if (!shapes[i][j].delete) final.push(recExport(shapes[i][j]));
+            if (!shapes[i][j].delete && !shapes[i][j].handdelete) final.push(recExport(shapes[i][j]));
         }
     }
 

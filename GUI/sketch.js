@@ -368,7 +368,7 @@ function mousePressed() {
                     selected = true;
                 }
                 else {
-                    shapes[active_layer][i].delete = true;
+                    shapes[active_layer][i].handdelete = true;
                 }
             }
         }
@@ -391,7 +391,7 @@ function mousePressed() {
                 voids[active_layer][i].select = true;
                 selected = true;
             }
-            else voids[active_layer][i].delete = true;
+            else voids[active_layer][i].handdelete = true;
         }
     }
 

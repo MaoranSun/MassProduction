@@ -112,6 +112,7 @@ class Rectangle {
     this.fill_color = fill_color;
 
     this.delete = false;
+    this.handdelete = false;
     this.hover = false;
     this.select = false;
     this.layer = layer_count
@@ -149,7 +150,7 @@ class Rectangle {
       }
       let transparent = [0, 1, .6, .3];
 
-      if (!this.delete) {
+      if (!this.delete && !this.handdelete) {
           push();
           if (this.hover) {
               strokeWeight(3);
