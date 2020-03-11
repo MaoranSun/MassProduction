@@ -151,7 +151,7 @@ class Rectangle {
 
       if (!this.delete) {
           push();
-          if (this.hover && this.layer == 1) {
+          if (this.hover) {
               strokeWeight(3);
               stroke('white');
               // fill(this.fill_color);
@@ -161,9 +161,9 @@ class Rectangle {
               noStroke();
               // fill(this.fill_color);
           }
-          // fill('rgba(colormap[this.fill_color][0], colormap[this.fill_color][1], colormap[this.fill_color][2], transparent[this.layer])');
-          fill(`rgba(${colormap[this.fill_color][0]}, ${colormap[this.fill_color][1]}, ${colormap[this.fill_color][2]}, ${transparent[this.layer]})`);
-          // print(`rgba(${colormap[this.fill_color][0]}, ${colormap[this.fill_color][1]}, ${colormap[this.fill_color][2]}, ${transparent[this.layer]})`);
+          fill(this.fill_color);
+          // fill(`rgba(${colormap[this.fill_color][0]}, ${colormap[this.fill_color][1]}, ${colormap[this.fill_color][2]}, ${transparent[this.layer]})`);
+
           quad(this.corners[0].x, this.corners[0].y, this.corners[1].x, this.corners[1].y, this.corners[2].x, this.corners[2].y, this.corners[3].x, this.corners[3].y);
           pop();
       }
@@ -327,13 +327,85 @@ class ButtonDelete extends Button {
     }
 }
 
+class ButtonDrawingLayer extends Button {
+    constructor(locationx, locationy, color, word) {
+        super(locationx, locationy, color, word);
+        this.status = 'active';
+        this.name = word
+    }
+
+    execute() {
+        if (this.status == 'active') {
+            this.status = 'close';
+            shapes[this.name]
+            //delete all geometry in this layer
+            for (let i = 0; i < shapes[this.name].length; i++) {
+                shapes[this.name][i].delete = true;
+            }
+            // delete all voids in this layer
+            for (let i = 0; i < voids[this.name].length; i++) {
+                voids[this.name][i].delete = true;
+            }
+        }
+        // else if (this.status == 'inactive') {
+        //     this.status = 'active';
+        // }
+        else {
+            this.status = 'active'
+            active_layer = this.name;
+            // show geometries in this layer
+            for (let i = 0; i < shapes[this.name].length; i++) {
+                shapes[this.name][i].delete = false;
+            }
+            // show voids in this layer
+            for (let i = 0; i < voids[this.name].length; i++) {
+                voids[this.name][i].delete = false;
+            }
+            for (let i = 0; i < buttons_layer.length; i++) {
+                if (buttons_layer[i].status == 'active' && buttons_layer[i].name != this.name) {
+                    buttons_layer[i].status = 'inactive';
+                }
+                // else {
+                //     buttons_layer[i].status = 'active';
+                // }
+            }
+        }
+    }
+
+    render() {
+        push();
+        textAlign(CENTER);
+        fill(this.color);
+        if (this.status == 'active') stroke('red');
+        else if (this.status == 'close') {
+            fill('black');
+        }
+        else noStroke();
+        // noStroke();
+        circle(this.centerx, this.centery, this.radius);
+        text(this.word, this.centerx, this.centery + this.radius);
+        pop();
+    }
+}
+
 class ButtonLayer extends Button {
     constructor(locationx, locationy, color, word) {
         super(locationx, locationy, color, word);
     }
 
     execute() {
-        if (new_layer) new_layer = false;
-        else new_layer = true;
+        // if (new_layer) new_layer = false;
+        // else new_layer = true;
+        layer_count += 1;
+        buttons_layer.push(new ButtonDrawingLayer(930, layer_btn_y, '#ffffff', layer_count));
+        layer_btn_y -= 70;
+        active_layer = layer_count;
+        for (let i = 0; i < buttons_layer.length; i++) {
+            if (buttons_layer[i].name != active_layer) {
+                buttons_layer[i].status = 'inactive';
+            }
+        }
+        voids.push([]);
+        shapes.push([]);
     }
 }

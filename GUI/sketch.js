@@ -7,13 +7,15 @@ let count = 0;
 // Record each shape
 let rec = [];
 // Record all shapes
-let shapes = [];
+let shapes = [[]];
+// Record all voids
+let voids = [[]];
 // Initial stroke color
 let s_color = '#eb565c';
 // Check if a button is clicked
 let btned = false;
 // layer info
-let layer_count = 1;
+let layer_count = 0;
 
 // not sure if useful, for test now
 let hover = false;
@@ -33,11 +35,14 @@ let currentlySketchingALine = false;
 let curveLines = [];
 let recordCurve = [];
 let polygons = [];
-let voids = [];
+
 let voids_curve = [];
 
 // buttons
 let btn_y = 570;
+let layer_btn_y = 410;
+let active_layer = 0
+// let layer_count = 0;
 
 let retail_btn;
 let residential_btn;
@@ -77,13 +82,13 @@ function setup() {
   void_btn = new ButtonColor(290, btn_y, 'black', 'Void')
 
   // Save txt file Button
-  save_btn = new ButtonSave(930, btn_y, '#ffffff', 'Save');
+  save_btn = new ButtonSave(850, btn_y, '#ffffff', 'Save');
 
   // Clear Canvas Button
-  clear_btn = new ButtonClear(850, btn_y, '#ffffff', 'Clear Canvas');
+  clear_btn = new ButtonClear(770, btn_y, '#ffffff', 'Clear Canvas');
 
   // Delete Button
-  delete_btn = new ButtonDelete(770, btn_y, 'red', 'Delete');
+  delete_btn = new ButtonDelete(690, btn_y, 'red', 'Delete');
 
   // 1-3 storey Button
   flr13_btn = new ButtonHeight(370, btn_y, '#ffffff', '1-3 floors', '1-3');
@@ -97,11 +102,17 @@ function setup() {
   // Mode Button
   mode_btn = new ButtonMode(690, btn_y, '#ffffff', 'Switch Mode');
 
-  // Layer
-  layer_btn = new ButtonLayer(960, btn_y-100, '#ffffff', 'Layer');
+  // Create New Layer
+  layer_btn = new ButtonLayer(930, btn_y, '#ffffff', 'New Layer');
+
+  //First Layer
+  layer_btn_0 = new ButtonDrawingLayer(930, btn_y-80, '#ffffff', '0')
 
   // Add buttons to array
   buttons = [retail_btn, residential_btn, office_btn, void_btn, save_btn, clear_btn, flr13_btn, flr46_btn, flr912_btn, delete_btn, layer_btn];
+  // Layers button array
+  buttons_layer = [layer_btn_0];
+
   // buttons = [retail_btn, residential_btn, office_btn, void_btn, save_btn, clear_btn, flr13_btn, flr46_btn, flr912_btn, mode_btn, delete_btn, layer_btn];
 }
 
@@ -111,12 +122,13 @@ function draw() {
     background(51);
     background(bg);
 
+    // Text on the top-left
     push();
     textAlign(LEFT);
     textSize(24);
     // textFont('');
     fill('white');
-    text("1min Before Studio But You've got nothing", 20, 40);
+    text("MASS Production", 20, 40);
     if (delete_mode) mode_text = 'Current Mode: Delete';
     else if (curvemode) mode_text = 'Current Mode: Free Curves';
     else mode_text = 'Current Mode: Rectangle';
@@ -136,31 +148,63 @@ function draw() {
     for (let i = 0; i < buttons.length; i++) {
         buttons[i].render()
     }
+    for (let i = 0; i < buttons_layer.length; i++) {
+        buttons_layer[i].render();
+    }
 
     //render hovered geometry
     hover_p = new Point(mouseX, mouseY);
+    // read from top layers to bottom
+
     for (let i = 0; i < shapes.length; i++) {
-        if (inside(hover_p, shapes[i].cornerscoord) && !selected) shapes[i].hover = true;
-        else shapes[i].hover = false;
-        shapes[i].render();
+        // only active layer geometry could be hovered
+        if (i == active_layer) {
+            // iterate through active layer geometries
+            for (let j = 0; j < shapes[i].length; j++) {
+                if (inside(hover_p, shapes[i][j].cornerscoord) && !selected) {
+                    shapes[i][j].hover = true;
+                }
+                else shapes[i][j].hover = false;
+                shapes[i][j].render();
+            }
+        }
+        else {
+            for (let j = 0; j < shapes[i].length; j++) {
+                shapes[i][j].hover = false;
+                shapes[i][j].render();
+            }
+        }
     }
 
-    for (let i = 0; i < polygons.length; i++) {
-        if (inside(hover_p, polygons[i].cornerscoord) && !selected) polygons[i].hover = true;
-        else polygons[i].hover = false;
-        polygons[i].render();
-    }
+    // for (let i = 0; i < polygons.length; i++) {
+    //     if (inside(hover_p, polygons[i].cornerscoord) && !selected) polygons[i].hover = true;
+    //     else polygons[i].hover = false;
+    //     polygons[i].render();
+    // }
 
     for (let i = 0; i < voids.length; i++) {
-        if (inside(hover_p, voids[i].cornerscoord) && !selected) voids[i].hover = true;
-        else voids[i].hover = false;
-        voids[i].render();
+        // only voids in active layer could be hovered
+        if(i === active_layer) {
+            //iterate through active layer geometries
+            for (let j = 0; j < voids[i].length; j++) {
+                if (inside(hover_p, voids[i][j].cornerscoord) && !selected) voids[i][j].hover = true;
+                else voids[i][j].hover = false;
+                voids[i][j].render();
+            }
+        }
+
+        else {
+            for (let j = 0; j < voids[i].length; j++) {
+                voids[i][j].hover = false;
+                voids[i][j].render();
+            }
+        }
     }
-    for (let i = 0; i < voids_curve.length; i++) {
-        if (inside(hover_p, voids_curve[i].cornerscoord) && !selected) voids_curve[i].hover = true;
-        else voids_curve[i].hover = false;
-        voids_curve[i].render();
-    }
+    // for (let i = 0; i < voids_curve.length; i++) {
+    //     if (inside(hover_p, voids_curve[i].cornerscoord) && !selected) voids_curve[i].hover = true;
+    //     else voids_curve[i].hover = false;
+    //     voids_curve[i].render();
+    // }
 
     // move geometry
     if (selected) {
@@ -171,33 +215,33 @@ function draw() {
         else y_dist = mouseY - pmouseY;
 
         // move selected rectangle
-        for (let i = 0; i < shapes.length; i++) {
-            if (shapes[i].select) {
+        for (let i = 0; i < shapes[active_layer].length; i++) {
+            if (shapes[active_layer][i].select) {
                 // print('yes');
-                shapes[i].move(x_dist, y_dist)
+                shapes[active_layer][i].move(x_dist, y_dist)
             }
         }
 
         // move selected polygons
-        for (let i = 0;i < polygons.length; i++) {
-            if (polygons[i].select) {
-                polygons[i].move(x_dist, y_dist);
-            }
-        }
+        // for (let i = 0;i < polygons.length; i++) {
+        //     if (polygons[i].select) {
+        //         polygons[i].move(x_dist, y_dist);
+        //     }
+        // }
 
         // move selected voids
-        for (let i = 0;i < voids.length; i++) {
-            if (voids[i].select) {
-                voids[i].move(x_dist, y_dist);
+        for (let i = 0;i < voids[active_layer].length; i++) {
+            if (voids[active_layer][i].select) {
+                voids[active_layer][i].move(x_dist, y_dist);
             }
         }
 
         // move selected voids_curve
-        for (let i = 0;i < voids_curve.length; i++) {
-            if (voids_curve[i].select) {
-                voids_curve[i].move(x_dist, y_dist);
-            }
-        }
+        // for (let i = 0;i < voids_curve.length; i++) {
+        //     if (voids_curve[i].select) {
+        //         voids_curve[i].move(x_dist, y_dist);
+        //     }
+        // }
     }
 
     // draw temp sketching LINES
@@ -224,12 +268,13 @@ function mouseReleased() {
         if (count % 4 == 0 && count != 0){
             let program = mapcolor(s_color);
             if (s_color == 'black') {
-                voids.push(pointsToRec(rec.slice(0,4), program, height, s_color, layer_count));
+                voids[active_layer].push(pointsToRec(rec.slice(0,4), program, height, s_color, active_layer));
             }
-            else shapes.push(pointsToRec(rec.slice(0,4), program, height, s_color, layer_count));
+            else shapes[active_layer].push(pointsToRec(rec.slice(0,4), program, height, s_color, active_layer));
             rec = [];
             sketchingLines = [];
-            print(finalExport(shapes));
+            // print(finalExport(shapes));
+            print(shapes);
         }
     }
     else if (selected) {
@@ -247,15 +292,6 @@ function mouseReleased() {
     }
     else if (delete_mode) sketchingLines = [];
 
-    // Update shapes layer
-    else if (new_layer) {
-        for (let i = 0; i < shapes.length; i++) {
-            updateLayer(shapes[i]);
-        }
-        for (let i = 0; i < voids.length; i++) {
-            updateLayer(voids[i])
-        }
-    }
 
     // print(polygons);
 
@@ -269,28 +305,39 @@ function mouseReleased() {
 
 
     // reset all shapes' select status to false
-    if (shapes.length > 0) {
-        for (let i = 0; i < shapes.length; i++) {
-            shapes[i].select = false;
+    for (let i = 0; i < shapes.length; i++) {
+        for (let j = 0; j < shapes[i].length; j++) {
+            shapes[i][j].select = false;
         }
     }
 
-    for (let i = 0; i < polygons.length; i++) {
-        polygons[i].select = false;
-    }
+
+    // for (let i = 0; i < polygons.length; i++) {
+    //     polygons[i].select = false;
+    // }
 
     for (let i = 0; i < voids.length; i++) {
-        voids[i].select = false;
+        for (let j = 0; j < voids[i].length; j++) {
+            voids[i][j].select = false;
+        }
+
     }
 
-    for (let i = 0; i < voids_curve.length; i++) {
-        voids_curve[i].select = false;
-    }
+    // for (let i = 0; i < voids_curve.length; i++) {
+    //     voids_curve[i].select = false;
+    // }
 
     // reset all buttons' select status to false
     for (let i = 0; i < buttons.length; i++) {
-        buttons.select = false;
+        buttons[i].select = false;
     }
+    for (let i = 0; i < buttons_layer.length; i++) {
+        buttons_layer[i].select = false;
+    }
+
+
+    print(active_layer);
+    print(selected);
 }
 
 function mouseDragged() {
@@ -314,51 +361,49 @@ function mousePressed() {
 
     if (s_color != 'black') {
         // check if a shape is selected
-        if (shapes.length > 0) {
-            for (let i = 0; i < shapes.length; i++) {
-                if (inside(temp_p, shapes[i].cornerscoord) && shapes[i].layer == 1) {
-                    if (!delete_mode) {
-                        shapes[i].select = true;
-                        selected = true;
-                    }
-                    else {
-                        shapes[i].delete = true;
-                    }
-                }
-            }
-        }
-
-        for (let i = 0; i < polygons.length; i++) {
-            if (inside(temp_p, polygons[i].cornerscoord)) {
+        for (let i = 0; i < shapes[active_layer].length; i++) {
+            if (inside(temp_p, shapes[active_layer][i].cornerscoord)) {
                 if (!delete_mode) {
-                    polygons[i].select = true;
+                    shapes[active_layer][i].select = true;
                     selected = true;
                 }
-                else polygons[i].delete = true;
-
+                else {
+                    shapes[active_layer][i].delete = true;
+                }
             }
         }
+
+        // for (let i = 0; i < polygons.length; i++) {
+        //     if (inside(temp_p, polygons[i].cornerscoord)) {
+        //         if (!delete_mode) {
+        //             polygons[i].select = true;
+        //             selected = true;
+        //         }
+        //         else polygons[i].delete = true;
+        //
+        //     }
+        // }
     }
 
-    for (let i = 0; i < voids.length; i++) {
-        if (inside(temp_p, voids[i].cornerscoord)) {
+    for (let i = 0; i < voids[active_layer].length; i++) {
+        if (inside(temp_p, voids[active_layer][i].cornerscoord)) {
             if (!delete_mode) {
-                voids[i].select = true;
+                voids[active_layer][i].select = true;
                 selected = true;
             }
-            else voids[i].delete = true;
+            else voids[active_layer][i].delete = true;
         }
     }
 
-    for (let i = 0; i < voids_curve.length; i++) {
-        if (inside(temp_p, voids_curve[i].cornerscoord)) {
-            if (!delete_mode) {
-                voids_curve[i].select = true;
-                selected = true;
-            }
-            else voids_curve[i].delete = true;
-        }
-    }
+    // for (let i = 0; i < voids_curve.length; i++) {
+    //     if (inside(temp_p, voids_curve[i].cornerscoord)) {
+    //         if (!delete_mode) {
+    //             voids_curve[i].select = true;
+    //             selected = true;
+    //         }
+    //         else voids_curve[i].delete = true;
+    //     }
+    // }
 
 
     // check if a button is selected
@@ -366,6 +411,14 @@ function mousePressed() {
         if (buttons[i].isinside(temp_p)) {
             buttons[i].select = true;
             buttons[i].execute();
+            btned = true;
+        }
+    }
+    // check if a layer is selected
+    for (let i = 0; i < buttons_layer.length; i++) {
+        if (buttons_layer[i].isinside(temp_p)) {
+            buttons_layer[i].select = true;
+            buttons_layer[i].execute();
             btned = true;
         }
     }

@@ -19,7 +19,7 @@ function inside(point, vs) {
 }
 
 // convert points to rectangle
-function pointsToRec(pts, program, height, fill_color) {
+function pointsToRec(pts, program, height, fill_color, layer_count) {
     let p11 = new Point(pts[0][0], pts[0][1]);
     let p12 = new Point(pts[0][2], pts[0][3]);
     let p21 = new Point(pts[1][0], pts[1][1]);
@@ -64,7 +64,7 @@ function pointsToRec(pts, program, height, fill_color) {
         p4 = lines[3].intersection(lines[2]);
     }
 
-    rec = new Rectangle(p1, p3, p4, p2, program, height, fill_color);
+    rec = new Rectangle(p1, p3, p4, p2, program, height, fill_color, layer_count);
 
     return rec;
 }
@@ -119,7 +119,7 @@ function mapCurveToPoint(curves) {
 
 // Save rectangle to text
 function recExport(rect) {
-    return [rect.totext, rect.program, rect.height, 'Rectangle'];
+    return [rect.totext, rect.program, rect.height, 'Rectangle', rect.layer];
 }
 
 // Save polygon to text
@@ -130,24 +130,35 @@ function polyExport(polygon) {
 // Final Export
 function finalExport(shapes) {
     let final = [];
-    if (shapes.length > 0) {
-        for (let i = 0; i < shapes.length; i++) {
-            if (!shapes[i].delete) final.push(recExport(shapes[i]));
+
+    for (let i = 0; i < shapes.length; i++) {
+        for (let j = 0; j < shapes[i].length; j++) {
+            if (!shapes[i][j].delete) final.push(recExport(shapes[i][j]));
         }
     }
 
     for (let i = 0; i < voids.length; i++) {
-        if (!voids[i].delete) final.push(recExport(voids[i]));
-    }
-
-    if (polygons.length > 0) {
-        for (let i = 0; i < polygons.length; i++) {
-            if (!polygons[i].delete) final.push(polyExport(polygons[i]));
+        for (let j = 0; j < voids[i].length; j++) {
+            if (!voids[i][j].delete) final.push(recExport(voids[i][j]))
         }
+        // if (!voids[i].delete) final.push(recExport(voids[i]));
     }
 
-    for (let i = 0; i < voids_curve.length; i++) {
-        if (!voids_curve[i].delete) final.push(polyExport(voids_curve[i]));
-    }
+    // if (polygons.length > 0) {
+    //     for (let i = 0; i < polygons.length; i++) {
+    //         if (!polygons[i].delete) final.push(polyExport(polygons[i]));
+    //     }
+    // }
+    //
+    // for (let i = 0; i < voids_curve.length; i++) {
+    //     if (!voids_curve[i].delete) final.push(polyExport(voids_curve[i]));
+    // }
     return final;
+}
+
+// Update layer_count
+function updateLayer(rec) {
+    // if(rec.layer == 3) rec.delete = true;
+    // else rec.layer = rec.layer + 1;
+    layer_count += 1;
 }
