@@ -56,6 +56,10 @@ let mode_btn;
 let temp_p;
 
 let buttons;
+const socket = new WebSocket('ws://127.0.0.1:7890/massings?name=web');
+
+
+
 
 
 // Setup UI
@@ -68,6 +72,12 @@ function setup() {
 
   noStroke();
   textAlign(CENTER);
+
+  // Websocket Part
+  // socket = new WebSocket('ws://localhost:9898')
+  socket.addEventListener('open', function (event) {
+      socket.send('hello, server!')
+  })
 
   // Retail Program Button
   retail_btn = new ButtonColor(50, btn_y, '#eb565c', 'Retail');
@@ -109,7 +119,7 @@ function setup() {
   layer_btn_0 = new ButtonDrawingLayer(930, btn_y-80, '#ffffff', '0')
 
   // Add buttons to array
-  buttons = [retail_btn, residential_btn, office_btn, void_btn, save_btn, clear_btn, flr13_btn, flr46_btn, flr912_btn, delete_btn, layer_btn];
+  buttons = [retail_btn, residential_btn, office_btn, void_btn, clear_btn, flr13_btn, flr46_btn, flr912_btn, delete_btn, layer_btn];
   // Layers button array
   buttons_layer = [layer_btn_0];
 
@@ -275,12 +285,17 @@ function mouseReleased() {
             sketchingLines = [];
             // print(finalExport(shapes));
             print(shapes);
+            socket.send(finalExport(shapes));
         }
     }
     else if (selected) {
         sketchingLines = []
         rec = [];
         count = 0;
+        socket.send(finalExport(shapes));
+    }
+    else if (btned) {
+        socket.send(finalExport(shapes));
     }
     else if (!btned && curvemode) {
         let program = mapcolor(s_color);
@@ -290,7 +305,12 @@ function mouseReleased() {
         else polygons.push(new Polygon(mapCurveToPoint(recordCurve), program, height, s_color));
         sketchingLines = [];
     }
-    else if (delete_mode) sketchingLines = [];
+    else if (delete_mode) {
+        sketchingLines = [];
+        socket.send(finalExport(shapes));
+    }
+
+
 
 
     // print(polygons);
