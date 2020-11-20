@@ -410,3 +410,16 @@ class ButtonLayer extends Button {
         shapes.push([]);
     }
 }
+
+class ButtonOrtho extends Button {
+    constructor(locationx, locationy, color, word) {
+        super(locationx, locationy, color, word);
+    }
+
+    execute() {
+        // if (new_layer) new_layer = false;
+        // else new_layer = true;
+        if (ortho) ortho = false;
+        else ortho = true;
+    }
+}

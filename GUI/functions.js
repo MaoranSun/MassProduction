@@ -35,34 +35,52 @@ function pointsToRec(pts, program, height, fill_color, layer_count) {
     let l4 = new L(p41, p42);
 
     let lines = [l1, l2, l3, l4];
-
-    let angle01 = lines[0].checkAngle(lines[1]);
-    let angle02 = lines[0].checkAngle(lines[2]);
-    let angle03 = lines[0].checkAngle(lines[3]);
     let p1;
     let p2;
     let p3;
     let p4;
     let rec;
 
-    if (abs(angle01) < abs(angle02) & abs(angle01) < abs(angle03)) {
-        p1 = lines[0].intersection(lines[2]);
-        p2 = lines[0].intersection(lines[3]);
-        p3 = lines[1].intersection(lines[2]);
-        p4 = lines[1].intersection(lines[3]);
-    }
-    else if(abs(angle02) < abs(angle01) & abs(angle02) < abs(angle03)) {
-        p1 = lines[0].intersection(lines[1]);
-        p2 = lines[0].intersection(lines[3]);
-        p3 = lines[2].intersection(lines[1]);
-        p4 = lines[2].intersection(lines[3]);
+    if (!ortho) {
+        let angle01 = lines[0].checkAngle(lines[1]);
+        let angle02 = lines[0].checkAngle(lines[2]);
+        let angle03 = lines[0].checkAngle(lines[3]);
+
+
+        if (abs(angle01) < abs(angle02) & abs(angle01) < abs(angle03)) {
+            p1 = lines[0].intersection(lines[2]);
+            p2 = lines[0].intersection(lines[3]);
+            p3 = lines[1].intersection(lines[2]);
+            p4 = lines[1].intersection(lines[3]);
+        }
+        else if(abs(angle02) < abs(angle01) & abs(angle02) < abs(angle03)) {
+            p1 = lines[0].intersection(lines[1]);
+            p2 = lines[0].intersection(lines[3]);
+            p3 = lines[2].intersection(lines[1]);
+            p4 = lines[2].intersection(lines[3]);
+        }
+        else {
+            p1 = lines[0].intersection(lines[1]);
+            p2 = lines[0].intersection(lines[2]);
+            p3 = lines[3].intersection(lines[1]);
+            p4 = lines[3].intersection(lines[2]);
+        }
     }
     else {
-        p1 = lines[0].intersection(lines[1]);
-        p2 = lines[0].intersection(lines[2]);
-        p3 = lines[3].intersection(lines[1]);
-        p4 = lines[3].intersection(lines[2]);
+        let vline = [];
+        let hline = [];
+        for (let i =0; i < lines.length; i++) {
+            if (lines[i].slope == 0) hline.push(lines[i]);
+            else vline.push(lines[i]);
+        }
+        p1 = hline[0].intersection(vline[0]);
+        p2 = hline[0].intersection(vline[1]);
+        p3 = hline[1].intersection(vline[0]);
+        p4 = hline[1].intersection(vline[1]);
+
     }
+
+
 
     rec = new Rectangle(p1, p3, p4, p2, program, height, fill_color, layer_count);
 

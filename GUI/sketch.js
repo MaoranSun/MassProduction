@@ -53,7 +53,9 @@ let flr13_btn;
 let flr46_btn;
 let flr912_btn;
 let mode_btn;
+let ortho_btn;
 let temp_p;
+let ortho = false;
 
 let buttons;
 const socket = new WebSocket('ws://127.0.0.1:7890/massings?name=web');
@@ -66,7 +68,8 @@ const socket = new WebSocket('ws://127.0.0.1:7890/massings?name=web');
 function setup() {
   // put setup code here
   // createCanvas(windowWidth, windowHeight);
-  bg = loadImage('http://127.0.0.1:8887/site-01.png');
+  // bg = loadImage('http://127.0.0.1:8887/site-01.png');
+  bg = loadImage("https://drive.google.com/file/d/1CPLAnpVXS81CbaWh7YC66-Ewsh0sDn8z/preview")
   createCanvas(1048, 636);
   background(51);
 
@@ -94,6 +97,9 @@ function setup() {
   // Save txt file Button
   save_btn = new ButtonSave(850, btn_y, '#ffffff', 'Save');
 
+  // Ortho mode button
+  ortho_btn = new ButtonOrtho(850, btn_y, '#ffffff', 'Ortho')
+
   // Clear Canvas Button
   clear_btn = new ButtonClear(770, btn_y, '#ffffff', 'Clear Canvas');
 
@@ -119,7 +125,7 @@ function setup() {
   layer_btn_0 = new ButtonDrawingLayer(930, btn_y-80, '#ffffff', '0')
 
   // Add buttons to array
-  buttons = [retail_btn, residential_btn, office_btn, void_btn, clear_btn, flr13_btn, flr46_btn, flr912_btn, delete_btn, layer_btn];
+  buttons = [retail_btn, residential_btn, office_btn, void_btn, clear_btn, ortho_btn, flr13_btn, flr46_btn, flr912_btn, delete_btn, layer_btn];
   // Layers button array
   buttons_layer = [layer_btn_0];
 
@@ -152,6 +158,7 @@ function draw() {
     text(mode_text, 20, 80);
     text('Current Program: '+ mapcolor(s_color), 20, 100);
     text('Current Height: '+height, 20, 120);
+    text('Ortho Mode: ' + ortho, 20, 140);
     pop();
 
     // render buttons
@@ -273,6 +280,8 @@ function mouseReleased() {
     if (!btned && !selected && !curvemode && !delete_mode && !new_layer) {
         count += 1;
         rec.push([lastLine.start.X, lastLine.start.Y, lastLine.end.X, lastLine.end.Y]);
+        print(rec);
+        print(count);
 
         // If a rectangle is formed, append it to shapes
         if (count % 4 == 0 && count != 0){
@@ -280,7 +289,7 @@ function mouseReleased() {
             if (s_color == 'black') {
                 voids[active_layer].push(pointsToRec(rec.slice(0,4), program, height, s_color, active_layer));
             }
-            else shapes[active_layer].push(pointsToRec(rec.slice(0,4), program, height, s_color, active_layer));
+            else shapes[active_layer].push(pointsToRec(rec.slice(0,4), program, height, s_color, active_layer, ortho));
             rec = [];
             sketchingLines = [];
             // print(finalExport(shapes));
@@ -363,7 +372,23 @@ function mouseReleased() {
 function mouseDragged() {
     if (currentlySketchingALine && sketchingLines.length > 0){
         lastLine = sketchingLines[sketchingLines.length - 1];
-        lastLine.chageEnd(new Point(mouseX, mouseY));
+        if (ortho) {
+            let start_x = temp_p.X;
+            let start_y = temp_p.Y;
+            let end_x = mouseX;
+            let end_y = mouseY;
+
+            if (Math.abs(start_x - end_x) > Math.abs(start_y - end_y)) {
+                lastLine.chageEnd(new Point(mouseX, start_y));
+            }
+            else {
+                lastLine.chageEnd(new Point(start_x, mouseY));
+            }
+        }
+        else {
+            lastLine.chageEnd(new Point(mouseX, mouseY));
+        }
+        // lastLine.chageEnd(new Point(mouseX, mouseY));
     }
     if (curvemode && !selected && checkDist(mouseX, mouseY, pmouseX, pmouseY)) {
 
