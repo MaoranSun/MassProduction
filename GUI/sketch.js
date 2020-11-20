@@ -58,7 +58,9 @@ let temp_p;
 let ortho = false;
 
 let buttons;
-const socket = new WebSocket('ws://127.0.0.1:7890/massings?name=web');
+const socket = new WebSocket('ws://massserver.herokuapp.com');
+// const socket = new WebSocket('ws://massserver.herokuapp.com:3000/massings?name=web');
+// const socket = new WebSocket('ws://localhost:3000');
 
 
 
